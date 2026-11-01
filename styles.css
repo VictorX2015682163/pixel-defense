@@ -1,0 +1,227 @@
+/* Shared presentation layer for the four standalone games. */
+:root {
+  --page-bg: #0b1220;
+  --panel-bg: rgba(26, 37, 64, 0.92);
+  --panel-border: #30446f;
+  --text: #e6edf6;
+  --muted: #94a6c7;
+  --accent: #ffd24a;
+  --accent-blue: #6bd6ff;
+}
+
+html {
+  min-height: 100%;
+  background: var(--page-bg);
+  touch-action: manipulation;
+}
+
+body.game-page {
+  min-height: 100vh;
+  overflow-x: hidden;
+  overflow-y: auto;
+  -webkit-touch-callout: none;
+  background:
+    radial-gradient(circle at 50% -10%, rgba(62, 91, 150, 0.28), transparent 42%),
+    linear-gradient(145deg, #0b1220 0%, #101b31 52%, #0c1425 100%);
+}
+
+body.game-page::before {
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  content: "";
+  opacity: 0.22;
+  background-image:
+    linear-gradient(rgba(255, 255, 255, 0.025) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 255, 255, 0.025) 1px, transparent 1px);
+  background-size: 32px 32px;
+}
+
+.game-page .wrap {
+  min-height: 100vh;
+  height: auto;
+  padding: 16px;
+  padding-top: calc(16px + var(--safe-area-inset-top, 0px));
+  padding-bottom: calc(20px + var(--safe-area-inset-bottom, 0px));
+  padding-top: calc(16px + var(--safe-area-inset-top, env(safe-area-inset-top, 0px)));
+  padding-bottom: calc(20px + var(--safe-area-inset-bottom, env(safe-area-inset-bottom, 0px)));
+}
+
+.game-page .hud,
+.game-page .panel,
+.game-page .overlay-card {
+  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.2);
+}
+
+.game-page canvas {
+  max-width: calc(100vw - 24px);
+  max-height: calc(100vh - 148px);
+  box-shadow: 0 20px 48px rgba(0, 0, 0, 0.28);
+}
+
+.game-page .wrap > * + * {
+  margin-top: 12px;
+}
+
+.game-page--pixel-defense .wrap > * + * {
+  margin-top: 0;
+  margin-left: 16px;
+}
+
+.game-page .hud {
+  gap: 0;
+}
+
+.game-page .hud > * {
+  margin-right: 14px;
+  margin-bottom: 4px;
+}
+
+.game-page .hud .item {
+  gap: 0;
+}
+
+.game-page .hud .item > * + * {
+  margin-left: 6px;
+}
+
+.game-page .tower-btn {
+  gap: 0;
+}
+
+.game-page .tower-btn > * + * {
+  margin-left: 10px;
+}
+
+.game-page--pixel-defense .stage,
+.game-page--pixel-defense .side {
+  gap: 0;
+}
+
+.game-page--pixel-defense .stage > * + *,
+.game-page--pixel-defense .side > * + * {
+  margin-top: 10px;
+}
+
+.game-page .mode-grid {
+  grid-gap: 14px;
+}
+
+.game-page .overlay {
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: 0;
+}
+
+.game-page button,
+.game-page .mode-card {
+  -webkit-tap-highlight-color: transparent;
+}
+
+.game-page button:focus,
+.game-page .mode-card:focus {
+  outline: 3px solid var(--accent-blue);
+  outline-offset: 3px;
+}
+
+.game-page button:focus-visible,
+.game-page .mode-card:focus-visible {
+  outline: 3px solid var(--accent-blue);
+  outline-offset: 3px;
+}
+
+.game-page .overlay-card {
+  width: 520px;
+  max-width: calc(100vw - 28px);
+  max-height: calc(100vh - 28px);
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  overflow: auto;
+  scrollbar-width: thin;
+}
+
+.game-page .overlay-card button {
+  min-height: 44px;
+}
+
+.game-page .hint {
+  max-width: 620px;
+  width: calc(100vw - 32px);
+}
+
+@supports ((-webkit-backdrop-filter: blur(6px)) or (backdrop-filter: blur(6px))) {
+  .game-page .overlay {
+    -webkit-backdrop-filter: blur(6px);
+    backdrop-filter: blur(6px);
+  }
+}
+
+@supports (mask-image: linear-gradient(to bottom, black, transparent)) {
+  body.game-page::before {
+    mask-image: linear-gradient(to bottom, black, transparent 85%);
+  }
+}
+
+@media (max-width: 900px) {
+  .game-page .wrap {
+    padding-left: 10px;
+    padding-right: 10px;
+  }
+
+  .game-page .hud {
+    justify-content: center;
+  }
+
+  .game-page .side {
+    max-width: 900px;
+  }
+
+  .game-page--pixel-defense .wrap > * + * {
+    margin-top: 8px;
+    margin-left: 0;
+  }
+}
+
+@media (max-width: 560px) {
+  .game-page .hud {
+    gap: 8px 12px;
+    padding: 9px 11px;
+  }
+
+  .game-page .hud .label {
+    font-size: 12px;
+  }
+
+  .game-page canvas {
+    max-width: calc(100vw - 20px);
+    max-height: calc(100vh - 178px);
+  }
+
+  .game-page .overlay-card {
+    padding: 22px 16px;
+  }
+
+  .game-page .overlay-card button {
+    width: 100%;
+    max-width: 220px;
+    margin: 4px auto;
+  }
+
+  .game-page .mode-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .game-page *,
+  .game-page *::before,
+  .game-page *::after {
+    scroll-behavior: auto !important;
+    transition-duration: 0.01ms !important;
+    animation-duration: 0.01ms !important;
+  }
+}

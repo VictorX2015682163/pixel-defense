@@ -1,0 +1,278 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+<meta name="description" content="像素塔防：布置防御塔，守住基地并完成 100 个波次。" />
+<meta name="theme-color" content="#0f1a2c" />
+<title>像素塔防 · Pixel Defense</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html, body {
+    height: 100%;
+    background: #0f1a2c;
+    color: #e6edf6;
+    font-family: -apple-system, "PingFang SC", "Microsoft YaHei", monospace;
+    overflow: hidden;
+    user-select: none;
+    -webkit-user-select: none;
+  }
+  .wrap {
+    height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 16px;
+    gap: 16px;
+  }
+  .stage {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+  .hud {
+    display: flex;
+    gap: 16px;
+    align-items: center;
+    padding: 10px 14px;
+    background: #1a2540;
+    border: 2px solid #2a3a60;
+    border-radius: 12px;
+    font-weight: 700;
+    font-size: 15px;
+    flex-wrap: wrap;
+  }
+  .hud .item { display: flex; align-items: center; gap: 6px; }
+  .hud .label { color: #8a9bbd; font-weight: 500; font-size: 13px; }
+  .hud .val { font-variant-numeric: tabular-nums; }
+  .hud .gold { color: #ffd24a; }
+  .hud .hp { color: #ff6b7a; }
+  .hud .wave { color: #6bd6ff; }
+  .hud .score { color: #b8f06a; }
+
+  canvas {
+    display: block;
+    background: #18243d;
+    border: 2px solid #2a3a60;
+    border-radius: 12px;
+    image-rendering: pixelated;
+    image-rendering: -moz-crisp-edges;
+    cursor: crosshair;
+    touch-action: none;
+  }
+
+  .side {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    width: 180px;
+  }
+  .panel {
+    background: #1a2540;
+    border: 2px solid #2a3a60;
+    border-radius: 12px;
+    padding: 12px;
+  }
+  .panel h3 {
+    font-size: 13px;
+    color: #8a9bbd;
+    margin-bottom: 8px;
+    letter-spacing: 1px;
+  }
+  .tower-btn {
+    width: 100%;
+    background: #243254;
+    border: 2px solid transparent;
+    color: #e6edf6;
+    padding: 10px;
+    border-radius: 8px;
+    cursor: pointer;
+    margin-bottom: 8px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    transition: all 0.15s;
+    font-family: inherit;
+    font-size: 13px;
+    text-align: left;
+  }
+  .tower-btn:hover { background: #2e3f6b; }
+  .tower-btn.active { border-color: #ffd24a; background: #2e3f6b; }
+  .tower-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+  .tower-btn .swatch {
+    width: 28px;
+    height: 28px;
+    border-radius: 6px;
+    flex-shrink: 0;
+    box-shadow: inset 0 0 0 2px rgba(0,0,0,0.3);
+  }
+  .tower-btn .info {
+    display: flex;
+    flex-direction: column;
+    line-height: 1.3;
+  }
+  .tower-btn .name { font-weight: 700; }
+  .tower-btn .cost { font-size: 11px; color: #ffd24a; }
+
+  .control-btn {
+    width: 100%;
+    background: #2ecc71;
+    border: none;
+    color: #fff;
+    padding: 12px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-family: inherit;
+    font-weight: 700;
+    font-size: 14px;
+    transition: background 0.15s;
+  }
+  .control-btn:hover { background: #27ae60; }
+  .control-btn.warn { background: #e74c3c; }
+  .control-btn.warn:hover { background: #c0392b; }
+  .control-btn:disabled { background: #555; cursor: not-allowed; }
+
+  .back-btn {
+    position: fixed;
+    top: 16px;
+    left: 16px;
+    background: #1a2540;
+    border: 2px solid #2a3a60;
+    color: #e6edf6;
+    padding: 8px 14px;
+    border-radius: 8px;
+    cursor: pointer;
+    text-decoration: none;
+    font-family: inherit;
+    font-size: 13px;
+    font-weight: 700;
+    z-index: 10;
+  }
+  .back-btn:hover { background: #2a3a60; }
+
+  .overlay {
+    position: fixed;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    left: 0;
+    background: rgba(15, 26, 44, 0.92);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 20;
+    backdrop-filter: blur(6px);
+  }
+  .overlay.hidden { display: none; }
+  .overlay-card {
+    background: #1a2540;
+    border: 3px solid #ffd24a;
+    border-radius: 16px;
+    padding: 32px 40px;
+    text-align: center;
+    max-width: 90vw;
+  }
+  .overlay-card h1 {
+    font-size: 36px;
+    margin-bottom: 12px;
+    color: #ffd24a;
+  }
+  .overlay-card.lose h1 { color: #ff6b7a; }
+  .overlay-card p {
+    color: #c0cfe3;
+    margin-bottom: 20px;
+    font-size: 15px;
+    line-height: 1.6;
+  }
+  .overlay-card .stats {
+    background: #243254;
+    padding: 14px;
+    border-radius: 8px;
+    margin-bottom: 20px;
+    font-size: 14px;
+  }
+  .overlay-card button {
+    background: #ffd24a;
+    border: none;
+    color: #1a2540;
+    padding: 12px 28px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-family: inherit;
+    font-weight: 700;
+    font-size: 15px;
+    margin: 0 6px;
+  }
+  .overlay-card button:hover { filter: brightness(1.1); }
+  .overlay-card button.secondary { background: #6bd6ff; }
+
+  @media (max-width: 900px) {
+    .wrap { flex-direction: column; padding: 8px; gap: 8px; }
+    .side { width: 100%; flex-direction: row; flex-wrap: wrap; }
+    .side .panel { flex: 1; min-width: 160px; }
+    canvas { max-width: 100%; height: auto; }
+    .back-btn { top: 8px; left: 8px; padding: 6px 10px; font-size: 12px; }
+  }
+</style>
+<link rel="stylesheet" href="./styles.css" />
+</head>
+<body class="game-page game-page--pixel-defense">
+
+<div class="wrap">
+  <div class="stage">
+    <div class="hud">
+      <div class="item"><span class="label">波次</span><span class="val wave" id="hudWave">0 / 100</span></div>
+      <div class="item"><span class="label">生命</span><span class="val hp" id="hudHp">20</span></div>
+      <div class="item"><span class="label">金币</span><span class="val gold" id="hudGold">150</span></div>
+      <div class="item"><span class="label">击杀</span><span class="val score" id="hudKills">0</span></div>
+    </div>
+    <canvas id="game" width="900" height="600" aria-label="像素塔防游戏地图"></canvas>
+  </div>
+
+  <div class="side">
+    <div class="panel">
+      <h3>选择塔</h3>
+      <button class="tower-btn" type="button" data-tower="basic">
+        <span class="swatch" style="background:#ffd24a"></span>
+        <span class="info"><span class="name">普通塔</span><span class="cost">50 金币</span></span>
+      </button>
+      <button class="tower-btn" type="button" data-tower="sniper">
+        <span class="swatch" style="background:#6bd6ff"></span>
+        <span class="info"><span class="name">狙击塔</span><span class="cost">100 金币</span></span>
+      </button>
+      <button class="tower-btn" type="button" data-tower="splash">
+        <span class="swatch" style="background:#c084ff"></span>
+        <span class="info"><span class="name">溅射塔</span><span class="cost">120 金币</span></span>
+      </button>
+    </div>
+
+    <div class="panel">
+      <h3>控制</h3>
+      <button class="control-btn" id="startWaveBtn" type="button">开始波次</button>
+      <button class="control-btn warn" id="resetBtn" type="button">重新开始</button>
+    </div>
+
+    <div class="panel">
+      <h3>提示</h3>
+      <div style="font-size: 12px; color: #8a9bbd; line-height: 1.6;">
+        点击格子放塔。<br>
+        塔不能放在路径上。<br>
+        击败 100 波即可通关！<br>
+        进度自动保存。
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="overlay hidden" id="overlay">
+  <div class="overlay-card" id="overlayCard">
+    <h1 id="overlayTitle">通关！</h1>
+    <p id="overlayMsg">你成功守住了基地。</p>
+    <div class="stats" id="overlayStats"></div>
+    <button id="overlayRestart" type="button">再玩一次</button>
+  </div>
+</div>
+
+<script src="./pixel-defense.js"></script>
+</body>
+</html>
